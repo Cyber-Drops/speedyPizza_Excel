@@ -1,0 +1,168 @@
+descrizione = '''
+Programma: speedyPizza.py
+Autore: Simone Tempesta
+Descrizione: 
+Inserita una directory contenente un file.xlsx(excel), con una formattazione predeterminata,
+costruisce e riordina il file in un dataframe. Eseguita l'elaborazione, in output (nella directory di esecuzione
+del programma) crea una cartella denominata (ordini_Y-M-D h#m#s) ed all'interno posiziona il file.xlsx(excel)
+elaborato denominato(ordine_h#m). Se si spunta la checkbox archivia originale, viene creata un'altra cartella denominata(
+archivioY-M-D) al cui interno viene posizionato il file originale(precedentemente elaborato) denominato(D-hfile.xlsx).
+Se si spunta la checkbox invia email, sarà inoltrato il file.xlsx elaborato via email.
+Uso:
+
+'''
+import pandas as pd
+from openpyxl import load_workbook
+import os
+import smtplib
+from email.message import EmailMessage
+from datetime import datetime
+
+#Scansiona il percorso
+def leggi_directory(percorso):
+    #directory = "C:\\Users\\simon\\PycharmProjects\\lavorare con exel"
+    l_directory = os.listdir(percorso)
+    return l_directory
+
+#Estrai file xlsx
+def estrai_file(lista_risorse):
+    lista_file = []
+    for elemnt in lista_risorse:
+        if ".xlsx" in elemnt and ".~" not in elemnt :
+            lista_file.append(elemnt)
+    return lista_file
+
+#Elabora file excel
+def elaborazione_exel(lista_exel):
+    for element in lista_exel:
+        df_elaborato = elabora_exel(element)
+        if "Informazioni cronologiche" in df_elaborato.columns:
+            df_elaborato.drop("Informazioni cronologiche", axis=1, inplace=True)
+        if "Indirizzo email" in df_elaborato.columns:
+            df_elaborato.drop("Indirizzo email", axis=1, inplace=True)
+    for column in df_elaborato.columns:
+        column_not_number = ["Plesso", "Classe", "Informazioni cronologiche", "Indirizzo email"]
+        if column not in column_not_number:
+            df_elaborato.astype({column:int})
+    df_elaborato.sort_values(by=["Plesso", "Classe"]).set_index("Classe", inplace=True)
+    print(df_elaborato.columns)
+    return df_elaborato
+
+#Elabora Excel to DataFrame
+def elabora_exel(file_excel):
+    df_elaborato = pd.read_excel(file_excel)
+    #df_elaborato.dropna(axis=1, how="all", inplace=True)
+    df_elaborato.fillna(value=0, inplace=True)
+    return df_elaborato
+
+#Elabora DataFrame
+def elabora_df_elab(df_elaborato):
+    classi = df_elaborato.groupby(by=["Plesso","Classe"])
+    df_risultante = classi.sum()
+    df_risultante["tot_pezzi"] = df_risultante.sum(axis=1)
+    totale = (df_risultante[' [Bianca (0,45)]'] * 0.45) + (df_risultante[' [Rossa (1,00)]'] * 1) + (df_risultante[' [Margherita (1,00)]'] * 1 + (df_risultante[' [Marinara (1,00)]'] * 1) + (df_risultante[' [Patate (1,00)]'] * 1) + (df_risultante[' [Funghi Rossa (1,00)]'] * 1) + (df_risultante[' [Crostino (1,00)]'] * 1) + (df_risultante[' [Ripena Mortadella (1,00)]'] * 1) + (df_risultante[' [Ripiena Salame (1,00)]'] * 1) + (df_risultante[' [Ripiena Cotto (1,00)]'] * 1) + (df_risultante[' [Ripena Prosciutto (1,00)]'] * 1))
+    df_risultante["totale_prezzo"] = totale
+    # Aggiunta colonne pizza totale in base al tipo
+    lista_colonne = df_risultante.columns
+    for column in lista_colonne[:-1]:
+        df_risultante[f"TOT.{column}"] = df_risultante[column].sum()
+    print(df_risultante)
+    return df_risultante
+
+
+#directory ordini
+def new_directory_ordini(new_directory, data_ora):
+    if not os.path.exists(new_directory):
+        nome_d = "ordini_" + str(data_ora)
+        os.mkdir(nome_d)
+    else:
+        print("cartella esistente")
+
+#Directory Archivio
+def archivia(lista_excel):
+        data = data_ora[:10]
+        day  = data_ora[8:10]
+        h = data_ora[11:13]
+        archivio_dir = percorso + "\\archivio" + data
+        if not os.path.exists(archivio_dir):
+            os.mkdir("archivio"+data)
+            for file in lista_excel:
+                with open(file, "rb") as f:
+                    old_file = f.read()
+                with open(archivio_dir+f"\\{day}-{h}file.xlsx", "wb") as f_arch:
+                    f_arch.write(old_file)
+                    os.remove(f"{percorso}\\{lista_excel[0]}")
+        else:
+            for file in lista_excel:
+                with open(file, "rb") as f:
+                    old_file = f.read()
+                with open(archivio_dir+f"\\{day}-{h}file.xlsx", "wb") as f_arch:
+                    f_arch.write(old_file)
+                    f.close()
+                    os.remove(f"{percorso}\\{lista_excel[0]}")
+
+#File elaborato di output
+def gestisci_file(new_directory, df_risultante, data_ora):
+    h_m = data_ora[11:16]
+    nome_ordine = f"Ordine_delle_{h_m}"
+    if not os.path.exists(new_directory + "\\" + nome_ordine):
+        df_risultante.to_excel(f"{new_directory}\\{nome_ordine}.xlsx",float_format="%.2f")
+        file_output = f"{new_directory}\\{nome_ordine}.xlsx"
+        return file_output
+    else:
+        print("File esistente")
+
+#Formatta file output
+def formatta_excel_output(file_output):
+    wb = load_workbook(filename=file_output)
+    sheet = wb["Sheet1"]
+    lista_colonne = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
+                     "U", "V", "W", "X", "Y", "Z", "AA"]
+    for colonna in lista_colonne:
+        sheet.column_dimensions[colonna].width = 25
+    wb.save(filename=file_output)
+
+#Invio Email
+def invia_mail(new_directory, file_output):
+    messaggio = EmailMessage()
+    messaggio["Subject"] = "Ordine pizza"
+    messaggio["From"] = "inviopizza@gmail.com"
+    messaggio["To"] = "simone-tempesta@alice.it"
+    with open(f"{file_output}", "rb") as f:
+        file = f.read()
+        messaggio.add_attachment(file, maintype='application', subtype='xlsx', filename='ordine.xlsx')
+    print(messaggio.get_content_type())
+    email = smtplib.SMTP("smtp.gmail.com", 587)
+    email.ehlo()
+    email.starttls()
+    email.ehlo()
+    email.login("inviopizza@gmail.com", "ForceisBig1977")
+    # email.sendmail("inviopizza@gmail.com", "simone-tempesta@alice.it",msg= messaggio)
+    email.send_message(messaggio)
+    email.quit()
+
+#Variabili
+data_ora = datetime.now().strftime('%Y-%m-%d %H#%M#%S')
+percorso = str(os.getcwd())
+
+def main():
+    #MAIN
+    #Elaborazione Exel
+    l_directory = leggi_directory(percorso)
+    lista_exel = estrai_file(l_directory)
+    df_elaborato = elaborazione_exel(lista_exel)
+    df_risultante = elabora_df_elab(df_elaborato)
+
+    #File e Directory
+    new_directory = percorso + "\\ordini_" + data_ora
+    new_directory_ordini(new_directory, data_ora)
+    file_output = gestisci_file(new_directory, df_risultante, data_ora)
+    print("file_outpu", file_output)
+    if file_output != None:
+        formatta_excel_output(file_output)
+    return new_directory, lista_exel, file_output
+
+if __name__ == "__main__":
+    main()
+
+
