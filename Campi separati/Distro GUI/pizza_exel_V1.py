@@ -22,7 +22,7 @@ invia email, sarà inoltrato il file.xlsx elaborato.
     nella quale si troverà il file elaborato per l'ordine.
 4) Al termine comparirà se tutto è andato a buon fine il messaggio: operazione avvenuta con successo.
 '''
-##Gestire errori di connessione per l'invio della mail
+#Gestire errori di connessione per l'invio della mail
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import Border, Font, PatternFill
