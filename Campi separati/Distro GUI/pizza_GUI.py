@@ -1,3 +1,4 @@
+import os
 from breezypythongui import EasyFrame
 from tkinter import filedialog
 from tkinter import PhotoImage
@@ -6,8 +7,8 @@ import pizza_exel_V1
 class SpeedyPizzaGui(EasyFrame):
     def __init__(self):
         EasyFrame.__init__(self, title="][---SpeedyPizzaPy---][",width=700, height=400, resizable=False)
-        self.default_path = pizza_exel_V1.percorso
-
+        #self.default_path = pizza_exel_V1.percorso
+        self.default_path = os.getcwd()
 #Disposizione Pannelli
         dataPanel = self.addPanel(row=0, column=0, background="white")
         checkboxPanel = self.addPanel(row=1, column=0, background="black")
@@ -15,7 +16,7 @@ class SpeedyPizzaGui(EasyFrame):
 
 #Panel Uno
         dataPanel.addLabel(text= "PATH: ",row= 0, column= 0, sticky= "NSEW")
-        self.inputPath = dataPanel.addTextField(text= self.default_path, row= 0, column= 1, width= 70, sticky= "EW")
+        self.inputPath = dataPanel.addTextField(text= "seleziona cartella", row= 0, column= 1, width= 70, sticky= "EW")
         self.buttonPath = dataPanel.addButton(text="Seleziona", row= 0, column= 2, command= self.selezionaPath)
 
 #Panel Due
@@ -35,25 +36,31 @@ class SpeedyPizzaGui(EasyFrame):
         imageLabel["height"] = 150
         imageLabel["image"] = self.image
     def selezionaPath(self):
-        self.nomeDirect = filedialog.askdirectory(parent=self)
+        self.nomeDirect = filedialog.askdirectory(parent=self,title="File Excel .xlsx")
         self.inputPath.setText(self.nomeDirect)
+        self.selected_path = self.nomeDirect
         self.inputPath["state"] = "disabled"
-
+        print(self.selected_path)
     def avvio(self):
         try:
-            new_directory, lista_excel, file_output = pizza_exel_V1.main()
+            new_directory, lista_excel, file_output = pizza_exel_V1.main(self.selected_path)
             if self.checkInviomail.isChecked():
                 pizza_exel_V1.invia_mail(new_directory, file_output)
             if self.checkArchivia.isChecked():
-                try: pizza_exel_V1.archivia(lista_excel)
-                except IsADirectoryError: self.messageBox(title="Error", message="non è possibile rimuovere cartelle")
-                except FileNotFoundError: self.messageBox(title="Error", message="File originale non trovato in cartella")
+                try: pizza_exel_V1.archivia(lista_excel, self.selected_path)
+                except IsADirectoryError: self.messageBox(title="!!!Error!!!", message="non è possibile rimuovere cartelle")
+                except FileNotFoundError: self.messageBox(title="!!!Error!!!", message="File originale non trovato in cartella")
+            self.messageBox(title="Success!!!!", message="Operazione avvenuta con successo!")
         except UnboundLocalError as e:
             errore_elabora = str(e)
             if "df_elaborato" in errore_elabora or "lista_excel" in errore_elabora:
-                self.messageBox(title="Error", message="Verifica la presenza del file .xlsx da elaborare")
+                self.messageBox(title="!!!Error!!!", message="Verifica la presenza del file .xlsx da elaborare", width=70, height=10)
+        except AttributeError as e:
+            e = str(e)
+            self.messageBox(title="!!!Error!!!", message=f"Non hai selezionata il percorso: ({e[0:16]+e[41:60]})", width=70, height=10)
+
     def help(self):
-        self.messageBox(title="Help", message= pizza_exel_V1.descrizione, width=100, height=30)
+        self.messageBox(title="??Help??", message= pizza_exel_V1.descrizione, width=100, height=30)
         pass
 
 def main():
