@@ -36,7 +36,7 @@ def leggi_directory(percorso):
     #directory = "C:\\Users\\simon\\PycharmProjects\\lavorare con exel"
     l_directory = os.listdir(percorso)
     return l_directory
-###
+
 #Estrai file xlsx
 def estrai_file(lista_risorse):
     lista_file = []

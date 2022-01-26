@@ -3,7 +3,7 @@ from breezypythongui import EasyFrame
 from tkinter import filedialog
 from tkinter import PhotoImage
 import pizza_exel_V1
-
+#Finestra Principale
 class SpeedyPizzaGui(EasyFrame):
     def __init__(self):
         EasyFrame.__init__(self, title="][---SpeedyPizzaPy---][",width=700, height=400, resizable=False)
