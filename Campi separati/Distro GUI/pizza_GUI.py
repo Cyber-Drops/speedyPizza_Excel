@@ -3,12 +3,14 @@ from breezypythongui import EasyFrame
 from tkinter import filedialog
 from tkinter import PhotoImage
 import pizza_exel_V1
+import socket
 #Finestra Principale
 class SpeedyPizzaGui(EasyFrame):
     def __init__(self):
         EasyFrame.__init__(self, title="][---SpeedyPizzaPy---][",width=700, height=400, resizable=False)
         #self.default_path = pizza_exel_V1.percorso
         self.default_path = os.getcwd()
+
 #Disposizione Pannelli
         dataPanel = self.addPanel(row=0, column=0, background="white")
         checkboxPanel = self.addPanel(row=1, column=0, background="black")
@@ -22,7 +24,8 @@ class SpeedyPizzaGui(EasyFrame):
 #Panel Due
         self.checkInviomail = checkboxPanel.addCheckbutton(text="@-Invia Email", row=0,column=0, sticky= "NSEW")
         self.checkArchivia = checkboxPanel.addCheckbutton(text="Archivia Originale[]", row=0, column= 1, sticky= "NSEW")
-        #self.checkDel = checkboxPanel.addCheckbutton(text= "elimina", row= 0, column= 2)
+        self.checkReport = checkboxPanel.addCheckbutton(text= "Report Classe", row= 0, column= 2)
+
 #Panel tre
         self.buttonStart = buttonPanel.addButton(text= "Avvio->", row= 1, column= 1, columnspan= 2, command= self.avvio)
         self.buttonHelp = buttonPanel.addButton(text= "? Help", row= 1, column= 3, command= self.help)
@@ -30,27 +33,35 @@ class SpeedyPizzaGui(EasyFrame):
         self.buttonHelp["height"] = 2
         self.buttonStart["width"] = 10
         self.buttonStart["height"] = 2
+        self.LabelAuthor = buttonPanel.addLabel("Autore: Simone Tempesta\nwww.cyber-drops.com", row=3, column=0, columnspan=2)
+
         self.image = PhotoImage(file="pizza.gif")
         imageLabel = buttonPanel.addLabel(text="", row=1, column =0, sticky="NSEW")
         imageLabel["width"] = 200
         imageLabel["height"] = 150
         imageLabel["image"] = self.image
+
     def selezionaPath(self):
         self.nomeDirect = filedialog.askdirectory(parent=self,title="File Excel .xlsx")
         self.inputPath.setText(self.nomeDirect)
         self.selected_path = self.nomeDirect
         self.inputPath["state"] = "disabled"
-        print(self.selected_path)
+
     def avvio(self):
         try:
-            new_directory, lista_excel, file_output = pizza_exel_V1.main(self.selected_path)
+            new_directory, lista_excel, file_output, df_risultante,df_elaborato, data_ora = pizza_exel_V1.main(self.selected_path)
             if self.checkInviomail.isChecked():
-                pizza_exel_V1.invia_mail(new_directory, file_output)
+                try: pizza_exel_V1.invia_mail(new_directory, file_output)
+                except socket.gaierror as e: self.messageBox(title="Connection Error", message="Verifica lo stato della connesione internet")
+            if self.checkReport.isChecked():
+                df_report = pizza_exel_V1.df_risult_to_report_class(file_output)
+                directory_classe = pizza_exel_V1.directory_class(percorso=self.selected_path, data_ora=data_ora)
+                pizza_exel_V1.gestisci_file_classe(directory_classe,df_report,data_ora)
             if self.checkArchivia.isChecked():
                 try: pizza_exel_V1.archivia(lista_excel, self.selected_path)
                 except IsADirectoryError: self.messageBox(title="!!!Error!!!", message="non è possibile rimuovere cartelle")
                 except FileNotFoundError: self.messageBox(title="!!!Error!!!", message="File originale non trovato in cartella")
-            self.messageBox(title="Success!!!!", message="Operazione avvenuta con successo!")
+            self.messageBox(title="Success!!!!", message="Operazione avvenuta con successo!\nLicenza valida fino al 12-03-2022")
         except UnboundLocalError as e:
             errore_elabora = str(e)
             if "df_elaborato" in errore_elabora or "lista_excel" in errore_elabora:
