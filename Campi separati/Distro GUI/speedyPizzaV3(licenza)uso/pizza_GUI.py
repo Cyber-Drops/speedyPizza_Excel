@@ -33,6 +33,7 @@ class SpeedyPizzaGui(EasyFrame):
         self.buttonHelp["height"] = 2
         self.buttonStart["width"] = 10
         self.buttonStart["height"] = 2
+        self.LabelAuthor = buttonPanel.addLabel("Autore: Simone Tempesta\nwww.cyber-drops.com", row=3, column=0, columnspan=2)
 
         self.image = PhotoImage(file="pizza.gif")
         imageLabel = buttonPanel.addLabel(text="", row=1, column =0, sticky="NSEW")
@@ -60,7 +61,7 @@ class SpeedyPizzaGui(EasyFrame):
                 try: pizza_exel_V1.archivia(lista_excel, self.selected_path)
                 except IsADirectoryError: self.messageBox(title="!!!Error!!!", message="non è possibile rimuovere cartelle")
                 except FileNotFoundError: self.messageBox(title="!!!Error!!!", message="File originale non trovato in cartella")
-            self.messageBox(title="Success!!!!", message="Operazione avvenuta con successo!")
+            self.messageBox(title="Success!!!!", message="Operazione avvenuta con successo!\nLicenza valida fino al 12-03-2022")
         except UnboundLocalError as e:
             errore_elabora = str(e)
             if "df_elaborato" in errore_elabora or "lista_excel" in errore_elabora:
