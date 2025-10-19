@@ -33,7 +33,6 @@ from datetime import datetime
 
 #Scansiona il percorso
 def leggi_directory(percorso):
-    #directory = "C:\\Users\\simon\\PycharmProjects\\lavorare con exel"
     l_directory = os.listdir(percorso)
     return l_directory
 
@@ -162,8 +161,8 @@ def formatta_excel_output(file_output, righe_colonne):
 def invia_mail(new_directory, file_output):
     messaggio = EmailMessage()
     messaggio["Subject"] = "Ordine pizza"
-    messaggio["From"] = "inviopizza@gmail.com"
-    messaggio["To"] = "simone-tempesta@alice.it"
+    messaggio["From"] = "inviopizza@test.com"
+    messaggio["To"] = "example@test.it"
     with open(f"{file_output}", "rb") as f:
         file = f.read()
         messaggio.add_attachment(file, maintype='application', subtype='xlsx', filename='ordine.xlsx')
@@ -172,7 +171,7 @@ def invia_mail(new_directory, file_output):
     email.ehlo()
     email.starttls()
     email.ehlo()
-    email.login("inviopizza@gmail.com", "ForceisBig1977")
+    email.login("inviopizza@test.com", "XXXXXXX")
     email.send_message(messaggio)
     email.quit()
 
